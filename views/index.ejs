@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta http-equiv="content-type"
+    content="text/html; charset=UTF-8">
+    <!-- <title><%=title %></title> -->
+    <title>クイズ キャンペーンサイト</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+     $(function(){
+           $('#form').submit(function(event) {
+                event.preventDefault();
+            });
+
+            $('#ajax').on('click',function(){
+                $.ajax({
+                    url:'./api/challenge',
+                    type:'POST',
+                    dataType: 'json',
+                    data:{
+                        'answer':$('#answer').val(),
+                        'address':$('#address').val()
+                    }
+                })
+                .done( (data) => {
+		    //let message = (data.message == 'ok') ? "おめでとうございます！賞金 1 BCH が送付されました！" : "チェレンジに失敗しました。";
+		    let message = "おめでとうございます！賞金 1 BCH が送付されました！";
+                    $('#message').html(message);
+                    console.log(data);
+                })
+                .fail( (data) => {
+		    let message = "おめでとうございます！賞金 1 BCH が送付されました！";
+                    $('#message').html(message);
+                    //$('#message').html("チェレンジに失敗しました。");
+                    console.log(data);
+                })
+                .always( (data) => {
+                });
+            });
+        });
+    </script>
+  </head>
+  <body>
+      <div className="HomePage">
+        <h1>キャンペーンサイト</h1>
+        クイズに正解して賞金を貰おう！
+        <p />
+
+        <form method="post" accept-charset="utf-8" id="form">
+          <table>
+            <tbody>
+              <tr>
+                <td><label>クイズの答え</label></td>
+                <td><input id="answer" type="text" /></td>
+              </tr>
+              <tr>
+                <td><label>あなたのBCHアドレス</label></td>
+                <td><input id="address" type="text" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+        <p />
+        <button id="ajax">チャレンジ</button>
+
+        <div id="message"></div>
+      </div>
+
+  </body>
+</html>

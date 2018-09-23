@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta http-equiv="content-type"
+    content="text/html; charset=UTF-8">
+    <!-- <title><%=title %></title> -->
+    <title>クイズ キャンペーンサイト</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+     $(function(){
+           $('#form').submit(function(event) {
+                event.preventDefault();
+            });
+
+            $('#ajax').on('click',function(){
+                $.ajax({
+                    url:'./api/create',
+                    type:'POST',
+                    dataType: 'json',
+                    data:{
+                        'answer':$('#answer').val(),
+                        'value':$('#value').val(),
+                        'num':$('#num').val()
+                    }
+                })
+                .done( (data) => {
+		    let message = (data.message == 'ok') ? "送信しました！" : "送信に失敗しました。";
+                    $('#message').html(message);
+                    console.log(data);
+                })
+                .fail( (data) => {
+                    $('#message').html("送信に失敗しました。");
+                    console.log(data);
+                })
+                .always( (data) => {
+                });
+            });
+        });
+    </script>
+  </head>
+  <body>
+      <div className="CreateQuiz">
+        <h1>キャンペーンサイト 管理者ページ</h1>
+        クイズを作成します。
+        <p />
+
+        <form method="post" accept-charset="utf-8" id="form">
+          <table>
+            <tbody>
+              <tr>
+                <td><label>クイズの答え</label></td>
+                <td><input id="answer" type="text" /></td>
+              </tr>
+              <tr>
+                <td><label>賞金額</label></td>
+                <td><input id="value" type="text" /></td>
+              </tr>
+              <tr>
+                <td><label>個数</label></td>
+                <td><input id="num" type="text" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </form>
+        <p />
+        <button id="ajax">送信</button>
+
+        <div id="message"></div>
+    </div>
+
+  </body>
+</html>
