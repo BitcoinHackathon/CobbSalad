@@ -3,6 +3,12 @@ const bodyParser = require('body-parser')
 const ejs = require('ejs')
 const app = express()
 
+const filePath = './utxoinfo.txt';
+const mnemonic = 'direct replace bean north solve swap ranch field rug scout great kingdom';
+const originalAmount = 81605;
+const txid = '8ab66d1558407d8a7a307362edbdb414970af4e8857b6d4ef89277e15bac4236';
+const vout = 9;
+
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -11,17 +17,11 @@ app.use(bodyParser.json());
 app.engine('ejs', ejs.renderFile)
 
 app.get('/', (request, response) => {
-  response.render('index.ejs',
-    {
-      title: 'Express + EJS',
-    })
+  response.render('index.ejs')
 })
 
 app.get('/create', (request, response) => {
-  response.render('create.ejs',
-    {
-      title: 'Express + EJS',
-    })
+  response.render('create.ejs')
 })
 
 app.post('/api/challenge', (request, response) => {
@@ -36,24 +36,14 @@ app.post('/api/create', (request, response) => {
 
 app.listen(3000)
 
-function readFile() {
-}
-
-
-const filePath = "./utxoinfo.txt";
-
 function challenge (response, answer, cashAddress) {
-	let fs = require("fs");
+	let fs = require('fs');
 	let fileData = fs.readFileSync(filePath, 'utf8');
 	let fileDataArr = fileData.split(/\n/);
+
 	let txid = (fileDataArr[0]);
 	let originalAmount = Number(fileDataArr[1]);
 	let vout = Number(fileDataArr[2]);
-	console.log('txid: ' + txid );
-	console.log('originalAmount: ' + originalAmount);
-	console.log('vout: ' + vout);
-
-	// ---
 
 	let BITBOXCli = require('bitbox-cli/lib/bitbox-cli').default;
 
@@ -61,21 +51,13 @@ function challenge (response, answer, cashAddress) {
 	  restURL: 'https://trest.bitcoin.com/v1/'
 	})
 
-	// 答え
-	// let inputString = Buffer.from("昆布サラダ", 'ascii');
-	let inputString = answer;
-
-	console.log(inputString);
-
-	let stringHash = BITBOX.Crypto.hash160(inputString + vout);
+	let stringHash = BITBOX.Crypto.hash160(answer + vout);
 
 	console.log(stringHash);
 
 	let doubleHash = BITBOX.Crypto.hash160(stringHash);
 
 	console.log(doubleHash);
-
-    let mnemonic = 'fever fitness middle supply canoe bottom protect march fox fabric excuse gasp';
 
 	// root seed buffer
 	let rootSeed = BITBOX.Mnemonic.toSeed(mnemonic);
@@ -87,7 +69,7 @@ function challenge (response, answer, cashAddress) {
 	let account = BITBOX.HDNode.derivePath(masterHDNode, "m/44'/145'/0'");
 
 	// derive the HDNode
-	let node = BITBOX.HDNode.derivePath(account, "432/123");
+	let node = BITBOX.HDNode.derivePath(account, '432/123');
 
 	// create instance of Transaction Builder class
 	let transactionBuilder = new BITBOX.TransactionBuilder('testnet');
@@ -153,40 +135,25 @@ function challenge (response, answer, cashAddress) {
 
 	   // 成功した場合に、txtの残りデポジットNo.を書き換える処理
 	   let fs = require('fs');
-	   fs.writeFileSync("utxoinfo.txt", txid + '\n' + originalAmount + '\n' + voutMax);
+	   fs.writeFileSync(filePath, txid + '\n' + originalAmount + '\n' + voutMax);
        response.json({
-           message:"ok"
+           message: 'ok'
        });
 
     },(err) => {
       response.json({
-        message:"ng"
+        message: 'ng'
       });
     });
 
 }
 
 
-
 function create (response, answer, prize, totalOutputNumber) {
 	let BITBOXCli = require('bitbox-cli/lib/bitbox-cli').default;
-
 	const BITBOX = new BITBOXCli({
 	  restURL: 'https://trest.bitcoin.com/v1/'
 	})
-
-	// 引数3つ
-	// 答え
-	let inputString = answer;
-	// 賞金は引数
-	//let prize = 1000;
-	// 個数
-	//let totalOutputNumber = 10;
-
-	console.log(inputString);
-
-	//let mnemonic = 'security hawk cross vessel cube chalk physical seven survey honey moral snack';
-    let mnemonic = 'direct replace bean north solve swap ranch field rug scout great kingdom';
 
 	// root seed buffer
 	let rootSeed = BITBOX.Mnemonic.toSeed(mnemonic);
@@ -198,27 +165,20 @@ function create (response, answer, prize, totalOutputNumber) {
 	let account = BITBOX.HDNode.derivePath(masterHDNode, "m/44'/145'/0'");
 
 	// derive HDNode
-	let node = BITBOX.HDNode.derivePath(account, "432/123");
+	let node = BITBOX.HDNode.derivePath(account, '432/123');
 
 	// HDNode to cashAddress
 	let cashAddress = BITBOX.HDNode.toCashAddress(node);
-
 	console.log(cashAddress);
 
 	// create instance of Transaction Builder class
 	let transactionBuilder = new BITBOX.TransactionBuilder('testnet');
 
-	// set original amount, txid and vout
-	let originalAmount = 81605;
-	let txid = '8ab66d1558407d8a7a307362edbdb414970af4e8857b6d4ef89277e15bac4236';
-	let vout = 9;
-
 	// add input
 	transactionBuilder.addInput(txid, vout);
 
-	// set fee and send amount
+	// set fee
 	let fee = 1000;
-	// let sendAmount = originalAmount - fee;
 
 	// ユーザが受け取るときの手数料を上乗せしておく
 	let acceptFee = 250;
@@ -235,7 +195,7 @@ function create (response, answer, prize, totalOutputNumber) {
 	console.log(change);
 
 	for (let i = 0; i < totalOutputNumber; i++) {
-	  let stringHash = BITBOX.Crypto.hash160(inputString + i);
+	  let stringHash = BITBOX.Crypto.hash160(answer + i);
 	  let doubleHash = BITBOX.Crypto.hash160(stringHash);
 
 	  console.log(stringHash);
@@ -278,24 +238,16 @@ function create (response, answer, prize, totalOutputNumber) {
 	BITBOX.RawTransactions.sendRawTransaction(hex).then((result) => {
 
 	  let fs = require('fs');
-	  function writeFile(path, data) {
-	    fs.writeFile(path, data, function (err) {
-	      if (err) {
-	          throw err;
-	      }
-	    });
-	  }
-	  
-	  writeFile("utxoinfo.txt", result + '\n' + sendAmount + '\n' + totalOutputNumber -1);
+	  fs.writeFileSync(filePath, result + '\n' + sendAmount + '\n' + totalOutputNumber -1);
 
       console.log(result);
+
       response.json({
-        message:"ok"
+        message: 'ok'
       });
     },(err) => {
       response.json({
-        message:"ng"
+        message: 'ng'
       });
     });
-
 }
